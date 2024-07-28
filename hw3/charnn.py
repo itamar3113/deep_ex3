@@ -18,13 +18,9 @@ def char_maps(text: str):
         represented by it. The reverse of the above map.
 
     """
-    # TODO:
-    #  Create two maps as described in the docstring above.
-    #  It's best if you also sort the chars before assigning indices, so that
-    #  they're in lexical order.
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    unique_chars = sorted(set(text))
+    char_to_idx = {char: idx for idx, char in enumerate(unique_chars)}
+    idx_to_char = {idx: char for idx, char in enumerate(unique_chars)}
     return char_to_idx, idx_to_char
 
 
@@ -37,16 +33,19 @@ def remove_chars(text: str, chars_to_remove):
         - text_clean: the text after removing the chars.
         - n_removed: Number of chars removed.
     """
-    # TODO: Implement according to the docstring.
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    n_removed = 0
+    text_clean = ""
+    for char in text:
+        if char in chars_to_remove:
+            n_removed += 1
+        else:
+            text_clean += char
     return text_clean, n_removed
 
 
 def chars_to_onehot(text: str, char_to_idx: dict) -> Tensor:
     """
-    Embed a sequence of chars as a a tensor containing the one-hot encoding
+    Embed a sequence of chars as a tensor containing the one-hot encoding
     of each char. A one-hot encoding means that each char is represented as
     a tensor of zeros with a single '1' element at the index in the tensor
     corresponding to the index of that char.
@@ -57,10 +56,10 @@ def chars_to_onehot(text: str, char_to_idx: dict) -> Tensor:
     and D is the number of unique chars in the sequence. The dtype of the
     returned tensor will be torch.int8.
     """
-    # TODO: Implement the embedding.
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    result = torch.zeros(len(text), (len(char_to_idx)), dtype=torch.int8)
+    for idx, char in enumerate(text):
+        index = char_to_idx[char]
+        result[(idx, index)] = 1
     return result
 
 
@@ -74,10 +73,10 @@ def onehot_to_chars(embedded_text: Tensor, idx_to_char: dict) -> str:
     :return: A string containing the text sequence represented by the
     embedding.
     """
-    # TODO: Implement the reverse-embedding.
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    result = ""
+    for tensor in embedded_text:
+        index = torch.nonzero(tensor, as_tuple=False).item()
+        result += idx_to_char[index]
     return result
 
 
