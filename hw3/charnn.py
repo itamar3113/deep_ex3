@@ -96,13 +96,7 @@ def chars_to_labelled_samples(text: str, char_to_idx: dict, seq_len: int, device
     the number of created samples, S is the seq_len and V is the embedding
     dimension.
     """
-    # TODO:
-    #  Implement the labelled samples creation.
-    #  1. Embed the given text.
-    #  2. Create the samples tensor by splitting to groups of seq_len.
-    #     Notice that the last char has no label, so don't use it.
-    #  3. Create the labels tensor in a similar way and convert to indices.
-    #  Note that no explicit loops are required to implement this function.
+
     embedded_text = chars_to_onehot(text, char_to_idx)
     num_of_samples = (len(embedded_text) - 1) // seq_len
     samples = embedded_text[:num_of_samples * seq_len].view(num_of_samples, seq_len, -1)
@@ -181,18 +175,12 @@ class SequenceBatchSampler(torch.utils.data.Sampler):
         self.batch_size = batch_size
 
     def __iter__(self) -> Iterator[int]:
-        # TODO:
-        #  Return an iterator of indices, i.e. numbers in range(len(dataset)).
-        #  dataset and represents one  batch.
-        #  The indices must be generated in a way that ensures
-        #  that when a batch of size self.batch_size of indices is taken, samples in
-        #  the same index of adjacent batches are also adjacent in the dataset.
-        #  In the case when the last batch can't have batch_size samples,
-        #  you can drop it.
-        idx = None  # idx should be a 1-d list of indices.
-        # ====== YOUR CODE: ======
-        raise NotImplementedError()
-        # ========================
+        num_examples = len(self)
+        num_batches = num_examples // self.batch_size
+        idx = list(range(num_batches * self.batch_size))
+        idx = [idx[i::num_batches] for i in range(num_batches)]
+        idx = [item for sublist in idx for item in sublist]
+
         return iter(idx)
 
     def __len__(self):
