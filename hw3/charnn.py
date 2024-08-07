@@ -208,13 +208,22 @@ class MultilayerGRU(nn.Module):
         self.out_dim = out_dim
         self.h_dim = h_dim
         self.n_layers = n_layers
-        self.layer_params = []
+        self.layer_params = nn.ModuleList()
+        self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 
-        # TODO: READ THIS SECTION!!
-
-        # ====== YOUR CODE: ======
-        raise NotImplementedError()
-        # ========================
+        dynamic_in_dim = h_dim
+        for i in range(n_layers):
+            layer_params = {
+                'wxz': nn.Linear(dynamic_in_dim, h_dim),
+                'whz': nn.Linear(h_dim, h_dim),
+                'wxr': nn.Linear(dynamic_in_dim, h_dim),
+                'whr': nn.Linear(h_dim, h_dim),
+                'wxg': nn.Linear(dynamic_in_dim, h_dim),
+                'whg': nn.Linear(h_dim, h_dim)
+            }
+            dynamic_in_dim = h_dim
+            self.layer_params.append(nn.ModuleDict(layer_params))
+            self.why = nn.Linear(h_dim, out_dim)
 
     def forward(self, input: Tensor, hidden_state: Tensor = None):
         """
@@ -245,8 +254,6 @@ class MultilayerGRU(nn.Module):
         layer_input = input
         layer_output = None
 
-        # TODO: READ THIS SECTION!!
-        # ====== YOUR CODE: ======
         # Loop over layers of the model
         for layer_idx in range(self.n_layers):
             wxz = self.layer_params[layer_idx]["wxz"]
