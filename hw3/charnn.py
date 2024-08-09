@@ -114,10 +114,11 @@ def hot_softmax(y, dim=0, temperature=1.0):
     :param temperature: Temperature.
     :return: Softmax computed with the temperature parameter.
     """
-    # TODO: Implement based on the above.
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
+    y = y / temperature
+    y = y - torch.max(y, dim=dim, keepdim=True).values
+    exp_y = torch.exp(y)
+    sum_exp_y = torch.sum(exp_y, dim=dim, keepdim=True)
+    result = exp_y / (sum_exp_y + 1e-10)
     return result
 
 
@@ -151,10 +152,17 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     #  Note that tracking tensor operations for gradient calculation is not
     #  necessary for this. Best to disable tracking for speed.
     #  See torch.no_grad().
-    # ====== YOUR CODE: ======
-    raise NotImplementedError()
-    # ========================
-
+    with torch.no_grad():
+        input_seq = chars_to_onehot(start_sequence, char_to_idx)
+        h_s = None
+        for i in range(n_chars - len(start_sequence)):
+            input_seq = input_seq.unsqueeze(0)
+            y, h_s = model(input_seq.to(dtype=torch.float, device=device), h_s)
+            probs = hot_softmax(y[0, -1, :], dim=0, temperature=T)
+            next_char_idx = torch.multinomial(probs, num_samples=1).item()
+            next_char = idx_to_char[next_char_idx]
+            out_text += next_char
+            input_seq = chars_to_onehot(next_char, char_to_idx)
     return out_text
 
 
@@ -211,19 +219,20 @@ class MultilayerGRU(nn.Module):
         self.layer_params = nn.ModuleList()
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 
-        dynamic_in_dim = h_dim
+        dynamic_in_dim = in_dim
         for i in range(n_layers):
             layer_params = {
-                'wxz': nn.Linear(dynamic_in_dim, h_dim),
-                'whz': nn.Linear(h_dim, h_dim),
+                'wxz': nn.Linear(dynamic_in_dim, h_dim, ),
+                'whz': nn.Linear(h_dim, h_dim, bias=False),
                 'wxr': nn.Linear(dynamic_in_dim, h_dim),
-                'whr': nn.Linear(h_dim, h_dim),
+                'whr': nn.Linear(h_dim, h_dim, bias=False),
                 'wxg': nn.Linear(dynamic_in_dim, h_dim),
-                'whg': nn.Linear(h_dim, h_dim)
+                'whg': nn.Linear(h_dim, h_dim, bias=False)
             }
             dynamic_in_dim = h_dim
             self.layer_params.append(nn.ModuleDict(layer_params))
-            self.why = nn.Linear(h_dim, out_dim)
+        self.why = nn.Linear(h_dim, out_dim)
+        self.add_module("why", self.why)
 
     def forward(self, input: Tensor, hidden_state: Tensor = None):
         """

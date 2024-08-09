@@ -249,10 +249,16 @@ class RNNTrainer(Trainer):
         #  - Backward pass: truncated back-propagation through time
         #  - Update params
         #  - Calculate number of correct char predictions
-        # ====== YOUR CODE: ======
-        raise NotImplementedError()
-        # ========================
-
+        self.optimizer.zero_grad()
+        y_pred, self.hidden_state = self.model(x, self.hidden_state)
+        y_pred = y_pred.view(-1, y_pred.shape[-1])
+        loss = self.loss_fn(y_pred, y.view(-1))
+        loss.backward()
+        self.optimizer.step()
+        _, predicted_labels = y_pred.max(dim=1)
+        num_correct = (predicted_labels == y).sum()
+        self.hidden_state = self.hidden_state.detach()
+        self.hidden_state.require_grad = True
         # Note: scaling num_correct by seq_len because each sample has seq_len
         # different predictions.
         return BatchResult(loss.item(), num_correct.item() / seq_len)
