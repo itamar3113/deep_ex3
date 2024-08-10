@@ -80,6 +80,7 @@ class Trainer(abc.ABC):
                 self.model.load_state_dict(saved_state["model_state"])
 
         for epoch in range(num_epochs):
+            actual_num_epochs += 1
             save_checkpoint = False
             verbose = False  # pass this to train/test_epoch.
             if epoch % print_every == 0 or epoch == num_epochs - 1:
@@ -92,11 +93,23 @@ class Trainer(abc.ABC):
             #  - Save losses and accuracies in the lists above.
             #  - Implement early stopping. This is a very useful and
             #    simple regularization technique that is highly recommended.
-            # ====== YOUR CODE: ======
-            
-            raise NotImplementedError()
-
-            # ========================
+            train_result = self.train_epoch(dl_train, verbose=verbose, **kw)
+            test_result = self.test_epoch(dl_test, verbose=verbose, **kw)
+            train_loss.append(train_result.losses)
+            train_acc.append(train_result.accuracy)
+            test_loss.append(test_result.losses)
+            test_loss.append(test_result.accuracy)
+            if best_acc is None or test_result.accuracy > best_acc:
+                best_acc = test_result.accuracy
+                epochs_without_improvement = 0
+                save_checkpoint = True
+                if epochs_without_improvement == early_stopping:
+                    break
+            else:
+                epochs_without_improvement += 1
+            if early_stopping and epochs_without_improvement >= early_stopping:
+                print(f"*** Early stopping at epoch {epoch + 1}")
+                break
 
             # Save model checkpoint if requested
             if save_checkpoint and checkpoint_filename is not None:
@@ -275,10 +288,12 @@ class RNNTrainer(Trainer):
             #  - Forward pass
             #  - Loss calculation
             #  - Calculate number of correct predictions
-            # ====== YOUR CODE: ======
-            raise NotImplementedError()
             # ========================
-
+            y_pred, self.hidden_state = self.model(x, self.hidden_state)
+            y_pred = y_pred.view(-1, y_pred.shape[-1])
+            loss = self.loss_fn(y_pred, y.view(-1))
+            _, predicted = torch.max(y_pred, dim=-1)
+            num_correct = (predicted == y).sum().item()
         return BatchResult(loss.item(), num_correct.item() / seq_len)
 
 
