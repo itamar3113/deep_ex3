@@ -268,8 +268,7 @@ class RNNTrainer(Trainer):
         loss = self.loss_fn(y_pred, y.view(-1))
         loss.backward()
         self.optimizer.step()
-        _, predicted_labels = y_pred.max(dim=1)
-        num_correct = (predicted_labels == y).sum()
+        num_correct = torch.sum(torch.argmax(y_pred, dim=-1) == y.view(-1))
         self.hidden_state = self.hidden_state.detach()
         self.hidden_state.require_grad = True
         # Note: scaling num_correct by seq_len because each sample has seq_len
@@ -292,8 +291,7 @@ class RNNTrainer(Trainer):
             y_pred, self.hidden_state = self.model(x, self.hidden_state)
             y_pred = y_pred.view(-1, y_pred.shape[-1])
             loss = self.loss_fn(y_pred, y.view(-1))
-            _, predicted = torch.max(y_pred, dim=-1)
-            num_correct = (predicted == y).sum().item()
+            num_correct = torch.sum(torch.argmax(y_pred, dim=-1) == y.view(-1))
         return BatchResult(loss.item(), num_correct.item() / seq_len)
 
 
