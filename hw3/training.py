@@ -103,13 +103,11 @@ class Trainer(abc.ABC):
                 best_acc = test_result.accuracy
                 epochs_without_improvement = 0
                 save_checkpoint = True
-                if epochs_without_improvement == early_stopping:
-                    break
             else:
                 epochs_without_improvement += 1
-            if early_stopping and epochs_without_improvement >= early_stopping:
-                print(f"*** Early stopping at epoch {epoch + 1}")
-                break
+                if early_stopping and epochs_without_improvement >= early_stopping:
+                    print(f"*** Early stopping at epoch {epoch + 1}")
+                    break
 
             # Save model checkpoint if requested
             if save_checkpoint and checkpoint_filename is not None:
