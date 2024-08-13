@@ -95,10 +95,10 @@ class Trainer(abc.ABC):
             #    simple regularization technique that is highly recommended.
             train_result = self.train_epoch(dl_train, verbose=verbose, **kw)
             test_result = self.test_epoch(dl_test, verbose=verbose, **kw)
-            train_loss.append(train_result.losses)
+            train_loss.extend(train_result.losses)
             train_acc.append(train_result.accuracy)
-            test_loss.append(test_result.losses)
-            test_loss.append(test_result.accuracy)
+            test_loss.extend(test_result.losses)
+            test_acc.append(test_result.accuracy)
             if best_acc is None or test_result.accuracy > best_acc:
                 best_acc = test_result.accuracy
                 epochs_without_improvement = 0
