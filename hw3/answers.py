@@ -71,18 +71,32 @@ part1_q4 = r"""
 PART2_CUSTOM_DATA_URL = None
 
 
-def part2_vae_hyperparams():
+def part2_gan_hyperparams():
     hypers = dict(
-        batch_size=0, h_dim=0, z_dim=0, x_sigma2=0, learn_rate=0.0, betas=(0.0, 0.0),
+        batch_size=0, 
+        z_dim=0, 
+        learn_rate=0.0,
+        betas=(0.0, 0.0), 
+        disdiscriminator_optimizer={}, 
+        generator_optimizer={},
+        data_label=0,
+        label_noise=0.0
+
     )
     # TODO: Tweak the hyperparameters to generate a former president.
     # ====== YOUR CODE: ======
-    hypers["batch_size"] = 96
-    hypers["h_dim"] = 512
-    hypers["z_dim"] = 64
-    hypers["x_sigma2"] = 0.1
-    hypers["learn_rate"] = 0.0002
-    hypers["betas"] = (0.5, 0.999)
+    hypers["batch_size"] =  128
+    hypers["z_dim"] = 100
+    hypers["learn_rate"] =  0.001
+    hypers["betas"] = (0.4, 0.8)
+    hypers["data_label"] = 0
+    hypers["label_noise"] = 0.1
+    hypers["discriminator_optimizer"] = {'type' : 'Adam', 
+                                        'betas' : hypers["betas"],
+                                        'lr' : hypers["learn_rate"]}
+    hypers["generator_optimizer"] = {'type' : 'Adam',
+                                        'betas' : hypers["betas"],
+                                        'lr' : hypers["learn_rate"]}
     # ========================
     return hypers
 
