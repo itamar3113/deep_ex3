@@ -54,12 +54,20 @@ memory.
 
 part1_q3 = r"""
 **Your answer:**
-
+We don't shuffling the order of the batches because it helps the model to pay attention to the context, because we have
+sequential data, shuffling would break the coherence of sentences and make it impossible for the model to learn. 
 """
 
 part1_q4 = r"""
 **Your answer:**
+1.We lower the temperature to make the prediction of the model more deterministic and less random. 
+  With lower temperature the probability distribution will be more sharp and the prediction will be more connected to the
+  context. 
+2.The probability distribution becomes more uniform, and sampling becomes more random and unpredictable.
+  The model is more likely to choose lower-probability tokens ant the outputs will be more diverse but less coherent.
 
+3.The probability distribution becomes very peaked abd sampling becomes nearly deterministic.
+The model almost always will choose the highest-probability token, and the output will be very consistent but less diverse.   
 
 """
 # ==============
