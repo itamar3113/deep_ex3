@@ -330,7 +330,14 @@ class TransformerEncoderTrainer(Trainer):
         # TODO:
         #  fill out the training loop.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.optimizer.zero_grad()
+        outputs = self.model(input_ids, attention_mask).squeeze(1)
+        loss = self.loss_fn(outputs, label)
+        loss.backward()
+        self.optimizer.step()
+        with torch.no_grad():
+            predictions = torch.round(torch.sigmoid(outputs))  
+            num_correct = (predictions == label).sum()
         # ========================
         
         
@@ -349,7 +356,10 @@ class TransformerEncoderTrainer(Trainer):
             # TODO:
             #  fill out the testing loop.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            outputs = self.model(input_ids, attention_mask).squeeze(1)
+            loss = self.loss_fn(outputs, label)
+            predictions = torch.round(torch.sigmoid(outputs))  
+            num_correct = (predictions == label).sum()
             # ========================
 
             
