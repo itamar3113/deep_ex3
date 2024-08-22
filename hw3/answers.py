@@ -80,43 +80,67 @@ PART2_CUSTOM_DATA_URL = None
 
 
 def part2_gan_hyperparams():
-	hypers = dict(
-		batch_size=0, 
-		z_dim=0, 
-		learn_rate=0.0,
-		betas=(0.0, 0.0), 
-		disdiscriminator_optimizer={}, 
-		generator_optimizer={},
-		data_label=0,
-		label_noise=0.0
+    hypers = dict(
+        batch_size=0, 
+        z_dim=0, 
+        learn_rate=0.0,
+        betas=(0.0, 0.0), 
+        disdiscriminator_optimizer={}, 
+        generator_optimizer={},
+        data_label=0,
+        label_noise=0.0
 
-	)
-	# TODO: Tweak the hyperparameters to generate a former president.
-	# ====== YOUR CODE: ======
-	hypers["batch_size"] =  128
-	hypers["z_dim"] = 100
-	hypers["learn_rate"] =  0.001
-	hypers["betas"] = (0.4, 0.8)
-	hypers["data_label"] = 0
-	hypers["label_noise"] = 0.1
-	hypers["discriminator_optimizer"] = {'type' : 'Adam', 
-										'betas' : hypers["betas"],
-										'lr' : hypers["learn_rate"]}
-	hypers["generator_optimizer"] = {'type' : 'Adam',
-										'betas' : hypers["betas"],
-										'lr' : hypers["learn_rate"]}
-	# ========================
-	return hypers
+    )
+    # TODO: Tweak the hyperparameters to generate a former president.
+    # ====== YOUR CODE: ======
+    hypers["batch_size"] =  64
+    hypers["z_dim"] = 128
+    hypers["learn_rate"] =  0.0002
+    hypers["betas"] = (0.5, 0.999)
+    hypers["data_label"] = 0
+    hypers["label_noise"] = 0.15
+    hypers["discriminator_optimizer"] = {'type' : 'Adam', 
+                                        'betas' : hypers["betas"],
+                                        'lr' : hypers["learn_rate"]}
+    hypers["generator_optimizer"] = {'type' : 'Adam',
+                                        'betas' : hypers["betas"],
+                                        'lr' : hypers["learn_rate"]}
+    # ========================
+    return hypers
 
 
 part2_q1 = r"""
 **Your answer:**
+The decision to maintain or discard gradients during sampling depends on the phase of training and the purpose of the sampling.
+
+When we're updating the generator's parameters, we need to maintain gradients. This is because the generator's weights are updated based on the gradients of the loss calculated using the generated samples.
+
+When updating the discriminator, we don't need gradients for the generated samples.
+this is because at this stage we generate fake samples from random noise, pass real and fake samples through the discriminator, calculate the loss and backpropagate the loss and update only the discriminator's parameters.
+We can discard gradients for the generated samples because we're not updating the generator in this step.
+
+In addition, During inference, we want to generate samples without updating the model's weights, so we discard the gradients.
+
 
 
 """
 
 part2_q2 = r"""
 **Your answer:**
+
+We should not stop training solely based on the Generator loss being below a threshold.
+Loss values alone don't tell the full story. the generator and discriminator are in a constant competition. A low generator loss could simply mean that the generator has found a way to fool the current discriminator, not necessarily that it's producing high-quality or diverse images.
+The generator loss doesn't directly correlate with the quality or diversity of the generated images because it's just a measure of how well the generator is fooling the current discriminator.
+
+in addition GANs can suffer from mode collapse, where the generator produces a limited variety of samples that fool the discriminator but don't represent the full diversity of the target distribution.
+A low generator loss could indicate that the generator is winning too easily, which might mean the discriminator isn't providing useful feedback anymore.
+
+Discriminator loss remaining constant while generator loss decreases could indicate several things.
+The discriminator might have become too good at its task, always correctly classifying real and fake images. This leads to a constant loss.
+Meanwhile, the generator is still improving, managing to produce increasingly convincing fakes, hence its decreasing loss.
+
+Secondly, mode collapse could be accuring, The generator might be focusing on producing a limited set of images that consistently fool the discriminator.
+The discriminator's performance doesn't improve because it's seeing the same types of fake images, while the generator gets better at producing this limited set.
 
 
 """
@@ -128,11 +152,9 @@ part2_q3 = r"""
 
 """
 
-part2_q4 = r"""
-**Your answer:**
 
 
-"""
+
 
 # ==============
 
@@ -183,6 +205,11 @@ part4_q1 = r"""
 part4_q2 = r"""
 **Your answer:**
 
+When the final two linear layers are frozen and only two internal layers are fine-tuned, the model's performance will decrease.
+
+In BERT, the final linear layers are primarily responsible for classification and are closely tied to the specific task. Internal layers, which include multi-headed attention mechanisms, focus on general language understanding and are useful across a variety of tasks.
+
+Fine-tuning internal layers is more challenging than adjusting the final classification layers for a few reasons. First, internal layers are positioned further from the output layer, so changes in them can lead to significant  unknown fluctuations in the model’s predictions. Additionally, while these layers do build upon the context provided by earlier layers, they might not immediately align with the specific task requirements, making it harder for them to accurately interpret nuanced aspects of a task, such as determining the sentiment of a review.
 
 """
 
