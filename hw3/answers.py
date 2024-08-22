@@ -11,31 +11,31 @@ math (delimited with $$).
 
 
 def part1_rnn_hyperparams():
-    hypers = dict(
-        batch_size=128,
-        seq_len=100,
-        h_dim=256,
-        n_layers=3,
-        dropout=0.2,
-        learn_rate=0.001,
-        lr_sched_factor=0.1,
-        lr_sched_patience=5,
-    )
-    # TODO: Set the hyperparameters to train the model.
-    # ====== YOUR CODE: ======
+	hypers = dict(
+		batch_size=128,
+		seq_len=100,
+		h_dim=256,
+		n_layers=3,
+		dropout=0.2,
+		learn_rate=0.001,
+		lr_sched_factor=0.1,
+		lr_sched_patience=5,
+	)
+	# TODO: Set the hyperparameters to train the model.
+	# ====== YOUR CODE: ======
 
-    # ========================
-    return hypers
+	# ========================
+	return hypers
 
 
 def part1_generation_params():
-    start_seq = "SCENE:"
-    temperature = 0.01
-    # TODO: Tweak the parameters to generate a literary masterpiece.
-    # ====== YOUR CODE: ======
+	start_seq = "SCENE:"
+	temperature = 0.01
+	# TODO: Tweak the parameters to generate a literary masterpiece.
+	# ====== YOUR CODE: ======
 
-    # ========================
-    return start_seq, temperature
+	# ========================
+	return start_seq, temperature
 
 
 part1_q1 = r"""
@@ -80,33 +80,33 @@ PART2_CUSTOM_DATA_URL = None
 
 
 def part2_gan_hyperparams():
-    hypers = dict(
-        batch_size=0, 
-        z_dim=0, 
-        learn_rate=0.0,
-        betas=(0.0, 0.0), 
-        disdiscriminator_optimizer={}, 
-        generator_optimizer={},
-        data_label=0,
-        label_noise=0.0
+	hypers = dict(
+		batch_size=0, 
+		z_dim=0, 
+		learn_rate=0.0,
+		betas=(0.0, 0.0), 
+		disdiscriminator_optimizer={}, 
+		generator_optimizer={},
+		data_label=0,
+		label_noise=0.0
 
-    )
-    # TODO: Tweak the hyperparameters to generate a former president.
-    # ====== YOUR CODE: ======
-    hypers["batch_size"] =  128
-    hypers["z_dim"] = 100
-    hypers["learn_rate"] =  0.001
-    hypers["betas"] = (0.4, 0.8)
-    hypers["data_label"] = 0
-    hypers["label_noise"] = 0.1
-    hypers["discriminator_optimizer"] = {'type' : 'Adam', 
-                                        'betas' : hypers["betas"],
-                                        'lr' : hypers["learn_rate"]}
-    hypers["generator_optimizer"] = {'type' : 'Adam',
-                                        'betas' : hypers["betas"],
-                                        'lr' : hypers["learn_rate"]}
-    # ========================
-    return hypers
+	)
+	# TODO: Tweak the hyperparameters to generate a former president.
+	# ====== YOUR CODE: ======
+	hypers["batch_size"] =  128
+	hypers["z_dim"] = 100
+	hypers["learn_rate"] =  0.001
+	hypers["betas"] = (0.4, 0.8)
+	hypers["data_label"] = 0
+	hypers["label_noise"] = 0.1
+	hypers["discriminator_optimizer"] = {'type' : 'Adam', 
+										'betas' : hypers["betas"],
+										'lr' : hypers["learn_rate"]}
+	hypers["generator_optimizer"] = {'type' : 'Adam',
+										'betas' : hypers["betas"],
+										'lr' : hypers["learn_rate"]}
+	# ========================
+	return hypers
 
 
 part2_q1 = r"""
@@ -143,31 +143,34 @@ PART3_CUSTOM_DATA_URL = None
 
 
 def part3_transformer_encoder_hyperparams():
-    hypers = dict(
-        embed_dim=128,    
-        num_heads=8,          
-        num_layers=6,         
-        hidden_dim=512,       
-        window_size=16,       
-        dropout=0.1,         
-        lr=1e-4,
-    )
+	hypers = dict(
+		embed_dim=128,    
+		num_heads=8,          
+		num_layers=6,         
+		hidden_dim=512,       
+		window_size=16,       
+		dropout=0.1,         
+		lr=1e-4,
+	)
 
-    # TODO: Tweak the hyperparameters to train the transformer encoder.
-    # ====== YOUR CODE: ======
+	# TODO: Tweak the hyperparameters to train the transformer encoder.
+	# ====== YOUR CODE: ======
 
-    # ========================
-    return hypers
+	# ========================
+	return hypers
 
 
 part3_q1 = r"""
 **Your answer:**
-
+Each layer processes the dependencies within the window. When we stack the layers the windows overlap,
+and the information propegates accross wider spans.  
 """
 
 part3_q2 = r"""
 **Your answer:**
-
+Instead of taking continuous window, we will take dilated window(for example if we are in the i-th step,
+instead of taking the (i - w/2) to the (i + w/2) tokens, we will take the same number of tokens but with gaps between them).
+This way the complexity stays the same but we have more global context.
 
 """
 
