@@ -379,14 +379,25 @@ class FineTuningTrainer(Trainer):
         #  fill out the training loop.
         # ====== YOUR CODE: ======
         self.model.to(self.device)
-        scores = self.model.forward(input_ids, attention_mask=attention_masks, labels=labels)
+
+        # Perform a forward pass to compute the scores and loss
+        scores = self.model(input_ids, attention_mask=attention_masks, labels=labels)
         loss = scores.loss
+
+        # Clear previous gradients
         self.optimizer.zero_grad()
+
+        # Backpropagate the loss to compute new gradients
         loss.backward()
+
+        # Update the model parameters
         self.optimizer.step()
+
+        # Determine the predicted labels by finding the maximum logit
         _, y_pred = torch.max(scores.logits, dim=1)
+
+        # Count the number of correct predictions
         num_correct = (y_pred == labels).sum().item()
-        
         # ========================
         
         return BatchResult(loss, num_correct)
@@ -401,9 +412,16 @@ class FineTuningTrainer(Trainer):
             # TODO:
             #  fill out the training loop.
             # ====== YOUR CODE: ======
+            # Run the model in evaluation mode and get the predictions and loss
             scores = self.model(input_ids, attention_mask=attention_masks, labels=labels)
+
+            # Extract the loss value as a scalar
             loss = scores.loss.item()
+
+            # Obtain the predicted labels by finding the index of the maximum logit
             _, y_pred = torch.max(scores.logits, dim=1)
+
+            # Compute the number of correct predictions
             num_correct = (y_pred == labels).sum().item()
             # ========================
         return BatchResult(loss, num_correct)

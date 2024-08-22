@@ -39,7 +39,7 @@ class Discriminator(nn.Module):
         # Fully connected layer for classification
         self.fc = nn.Sequential(
             nn.Linear(num_features, 1),
-            nn.Sigmoid()
+            #nn.Sigmoid()
         )
         
 

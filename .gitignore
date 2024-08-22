@@ -1,0 +1,8 @@
+checkpoints/*.pt
+.idea/
+.ipynb_checkpoints/
+.jupyter/
+finetuned_all.pkl
+finetuned_all.pt
+finetuned_last_2.pt
+fit_result_finetune_2.pkl
