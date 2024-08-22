@@ -198,8 +198,11 @@ This way the complexity stays the same but we have more global context.
 
 part4_q1 = r"""
 **Your answer:**
+BERT demonstrated significantly better results compared to our previously trained Transformer, whether fine-tuning just the last two linear layers or the entire model. This improvement is largely due to BERT being a much larger model that has been pre-trained on a vast dataset, giving it a more comprehensive understanding of the English language than what could be achieved with our smaller model, which was trained on a limited dataset and only uses windowed attention.
 
+However, this advantage doesn't necessarily extend to all downstream tasks. For instance, in tasks requiring highly specialized knowledge, such as legal document classification or medical terminology identification, BERT's general language understanding might not be as effective as a model trained specifically on domain-specific data. A smaller model trained from scratch on a legal or medical dataset could potentially outperform BERT because it is tailored to the unique language and patterns of those fields.
 
+Another example is in real-time, low-latency applications, such as voice-activated assistants or real-time translation systems. BERT's large size and complexity might make it less suitable for these tasks due to its higher computational demands. In these scenarios, a smaller, more efficient model trained from scratch for speed and responsiveness might be preferable, even if it doesn't match BERT's accuracy on more general tasks.
 """
 
 part4_q2 = r"""
@@ -216,18 +219,26 @@ Fine-tuning internal layers is more challenging than adjusting the final classif
 part4_q3 = r"""
 **Your answer:**
 
+BERT was not originally designed for machine translation. BERT operates primarily as a masked language model without generative abilities. To enable BERT to perform translation tasks, many changes are necessary. 
 
+a decoder whould need to be incorporated to generate text in the target language, thus converting BERT into a sequence-to-sequence model. Additionally, the pre-training process would need to be different to incorporate tasks specifically geared toward translation, such as denoising auto-encoding across various languages or predicting parallel sentences.
+
+These changes are essential because effective translation requires both an understanding of the source language—where BERT excels—and the ability to generate accurate text in the target language, a capability absent in BERT's original design.
 """
 
 part4_q4 = r"""
 **Your answer:**
 
+Choosing an RNN over a Transformer is often advantageous for tasks that involve sequences with strong temporal dependencies or when the input sequences are highly variable and potentially very long.
 
+RNNs are inherently designed to process sequential data, maintaining the order of inputs, which makes them suitable for scenarios where the output depends significantly on prior inputs. Additionally, RNNs can handle sequences of various lengths with a consistent memory usage, which is beneficial when computational resources are limited or when dealing with extremely long sequences. 
+In contrast, Transformers rely on self-attention mechanisms that scale quadratically with sequence length, which can be less efficient for very lengthy sequences.
 """
 
 part4_q5 = r"""
 **Your answer:**
-
+Next Sentence Prediction (NSP) is a pre-training task in BERT where the model determines if one sentence follows another in the original text. During training, BERT processes both sentences together and uses the CLS token to make this prediction, with binary cross-entropy as the loss function. While NSP can help the model better understand the relationship between sentences and is useful for tasks like question answering, it's not absolutely essential. 
+BERT can still perform effectively without it, as other tasks contribute more significantly to the model's ability to grasp context.
 
 """
 
