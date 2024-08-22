@@ -3,88 +3,78 @@ import torch.nn as nn
 import math
 
 
-
-
 def sliding_window_attention(q, k, v, window_size, padding_mask=None):
-    """
-   Computes the simple sliding window attention from 'Longformer: The Long-Document Transformer'.
-   This implementation is meant for multihead attention on batched tensors. It should work for both single and multi-head attention.
-   :param q - the query vectors. #[Batch, SeqLen, Dims] or [Batch, SeqLen, Dims]
-   :param k - the key vectors.  #[Batch, *, SeqLen, Dims] or [Batch, SeqLen, Dims]
-   :param v - the value vectors.  #[Batch, *, SeqLen, Dims] or [Batch, SeqLen, Dims]
-   :param window_size - size of sliding window. Must be an even number.
-   :param padding_mask - a mask that indicates padding with 0.  #[Batch, SeqLen]
-   :return values - the output values. #[Batch, *, SeqLen, Dims] or [Batch, SeqLen, Dims]
-   :return attention - the attention weights. #[Batch, *, SeqLen, SeqLen] or [Batch, SeqLen, SeqLen]
-   """
-    assert window_size%2 == 0, "window size must be an even number"
-    seq_len = q.shape[-2]
-    embed_dim = q.shape[-1]
-    batch_size = q.shape[0] 
-
-    values, attention = None, None
+    '''
+    Computes the simple sliding window attention from 'Longformer: The Long-Document Transformer'.
+    This implementation is meant for multihead attention on batched tensors. It should work for both single and multi-head attention.
+    :param q - the query vectors. #[Batch, SeqLen, Dims] or [Batch, num_heads, SeqLen, Dims]
+    :param k - the key vectors.  #[Batch, *, SeqLen, Dims] or [Batch, num_heads, SeqLen, Dims]
+    :param v - the value vectors.  #[Batch, *, SeqLen, Dims] or [Batch, num_heads, SeqLen, Dims]
+    :param window_size - size of sliding window. Must be an even number.
+    :param padding_mask - a mask that indicates padding with 0.  #[Batch, SeqLen]
+    :return values - the output values. #[Batch, SeqLen, Dims] or [Batch, num_heads, SeqLen, Dims]
+    :return attention - the attention weights. #[Batch, SeqLen, SeqLen] or [Batch, num_heads, SeqLen, SeqLen]
+    '''
 
     # TODO:
     #  Compute the sliding window attention.
     # NOTE: We will not test your implementation for efficiency, but you are required to follow these two rules:
     # 1) Implement the function without using for loops.
-    # 2) DON'T compute all dot products and then remove the uneccessary comptutations 
-    #    (both for tokens that aren't in the window, and for tokens that correspond to padding according to the 'padding mask').
+    # 2) DON'T compute all dot products and then remove the uneccessary comptutations
+    #    (You can compute the dot products for any entry, even if it corresponds to padding, as long as it is within the window).
     # Aside from these two rules, you are free to implement the function as you wish. 
-    # ====== YOUR CODE: ======
-    device = q.device
-    neg_inifinity = float("-inf") #
-
-    no_heads_dim = len(q.shape) == 3 # Boolen
-    if no_heads_dim:
-        heads_dim = 1 # set fake head dim for unified code
-        q = q.reshape(batch_size, heads_dim, seq_len, embed_dim)
-        k = k.reshape(batch_size, heads_dim, seq_len, embed_dim)
-        v = v.reshape(batch_size, heads_dim, seq_len, embed_dim)
-    else:
-        if len(q.shape) > 4: # I don't think this case is needed, but the notation [Batch, *, SeqLen, Dims] is unclear
-            # This section deals with [Batch, hiddendim_1, hiddendim_2, ... , hidden_dim_k, SeqLen, Dims]
-            # Unifing them into a single dimention, it will be expended before return
-            origin_shape = q.shape
-            q = q.reshape(batch_size, -1, seq_len, embed_dim)
-            k = k.reshape(batch_size, -1, seq_len, embed_dim)
-            v = v.reshape(batch_size, -1, seq_len, embed_dim)
-        else:
-            origin_shape = None
-        heads_dim = q.shape[1]
-    
-    pre_norm_attention = torch.tensor([neg_inifinity], device=device).repeat(batch_size, heads_dim, seq_len, seq_len)
-    
-    row_idxs = [r for r in range(seq_len) for c in range(max(0, r - window_size // 2), min(r + window_size // 2, seq_len - 1) + 1)]
-    col_idxs = [c for r in range(seq_len) for c in range(max(0, r - window_size // 2), min(r + window_size // 2, seq_len - 1) + 1)]
-    
-    pre_norm_attention[:, :, row_idxs, col_idxs] = (q[:, :, row_idxs, :] * k[:, :, col_idxs, :]).sum(-1)
-    
-    
-    # Apply Padding
-    if padding_mask is not None: 
-        cols_padding = padding_mask.reshape(batch_size, 1, 1, seq_len)
-        rows_padding = padding_mask.reshape(batch_size, 1, seq_len, 1)
-        full_padding = torch.min(cols_padding, rows_padding) * torch.ones((1, heads_dim, 1, 1), device=device)
-        pre_norm_attention = torch.where(full_padding != 1, torch.tensor(neg_inifinity, dtype=torch.float, device=device), pre_norm_attention)
-        
-    # Apply softmax, for rows which are all -inf replace nans with 0s
-    attention = torch.softmax(pre_norm_attention / (embed_dim ** 0.5), dim=-1)
+    ## HINT: There are several ways to implement this function, and while you are free to implement it however you may wish,
+    ## some are more intuitive than others. We suggest you to consider the following:
+    ## Think how you can obtain the indices corresponding to the entries in the sliding windows using tensor operations (without loops),
+    ## and then use these indices to compute the dot products directly.
+    assert window_size % 2 == 0, "Window size must be an even number"
+    batch_size, seq_len, embed_dim = q.shape[0], q.shape[-2], q.shape[-1]
+    q, k, v, heads_dim, no_heads_dim = _reshape_inputs(q, k, v)
+    window_mask = _create_window_mask(seq_len, window_size, q.device)
+    attention_scores = _compute_windowed_attention(q, k, window_mask, embed_dim)
+    if padding_mask is not None:
+        attention_scores = _apply_padding_mask(attention_scores, padding_mask, heads_dim)
+    attention = torch.softmax(attention_scores, dim=-1)
     attention = torch.nan_to_num(attention, 0)
-    # Calculate values
-    values = torch.matmul(attention, v) 
-    
-    if no_heads_dim:
-        # Remove the synthetic heads dim 
-        attention = attention.reshape(batch_size, seq_len, seq_len)
-        values = values.reshape(batch_size, seq_len, embed_dim)
-    elif origin_shape is not None: # The weird case where len(shape) > 4, split the multiple "heads dim" back to the hidden dims
-        dest_shape = list(origin_shape[:-2]) + [seq_len, seq_len]
-        attention = attention.reshape(*dest_shape)
-        values = values.reshape(*origin_shape)
-        
-    # ========================
+    values = torch.matmul(attention, v)
+    attention, values = _reshape_outputs(attention, values, no_heads_dim, batch_size, seq_len, embed_dim)
     return values, attention
+
+def _reshape_inputs(q, k, v):
+    if len(q.shape) == 3:
+        batch_size, seq_len, embed_dim = q.shape
+        heads_dim = 1
+        q = q.unsqueeze(1)
+        k = k.unsqueeze(1)
+        v = v.unsqueeze(1)
+        no_heads_dim = True
+    else:
+        batch_size, heads_dim, seq_len, embed_dim = q.shape
+        no_heads_dim = False
+    return q, k, v, heads_dim, no_heads_dim
+
+def _create_window_mask(seq_len, window_size, device):
+    r = torch.arange(seq_len, device=device).unsqueeze(1)
+    c = torch.arange(seq_len, device=device).unsqueeze(0)
+    mask = (c >= torch.maximum(torch.tensor(0), r - window_size // 2)) & (c <= torch.minimum(r + window_size // 2, torch.tensor(seq_len - 1)))
+    return mask
+
+def _compute_windowed_attention(q, k, window_mask, embed_dim):
+    batch_size, heads_dim, seq_len, _ = q.shape
+    attention_scores = torch.full((batch_size, heads_dim, seq_len, seq_len), float('-inf'), device=q.device)
+    valid_indices = window_mask.nonzero(as_tuple=True)
+    attention_scores[:, :, valid_indices[0], valid_indices[1]] = torch.sum(q[:, :, valid_indices[0], :] * k[:, :, valid_indices[1], :], dim=-1)
+    return attention_scores / (embed_dim ** 0.5)
+
+def _apply_padding_mask(attention_scores, padding_mask, heads_dim):
+    padding_mask = padding_mask.unsqueeze(1).unsqueeze(2) 
+    return torch.where(padding_mask, attention_scores, torch.tensor(float('-inf'), device=attention_scores.device))
+
+def _reshape_outputs(attention, values, no_heads_dim, batch_size, seq_len, embed_dim):
+    if no_heads_dim:
+        attention = attention.squeeze(1)
+        values = values.squeeze(1)
+    return attention, values
 
 
 
