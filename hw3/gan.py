@@ -289,7 +289,8 @@ def save_checkpoint(gen_model, dsc_losses, gen_losses, checkpoint_file):
     #  If you save, set saved to True.
     # ====== YOUR CODE: ======
     if len(gen_losses) > 1 and gen_losses[-1] < min(gen_losses[:-1]):
-        torch.save(gen_model.state_dict(), checkpoint_file)
+        torch.save(gen_model, checkpoint_file)
+        #torch.save(gen_model.state_dict(), checkpoint_file)
         print(f"*** Saved checkpoint {checkpoint_file} ")
         saved = True
     # ========================
